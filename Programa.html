@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluar Canción</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .container h1 {
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .form-group input[type="checkbox"] {
+            width: auto;
+        }
+        .form-group button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .form-group button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Evaluar Canción</h1>
+        <form id="songForm">
+            <div class="form-group">
+                <label for="album_type">Tipo de álbum (SINGLE/OTRO):</label>
+                <input type="text" id="album_type" name="album_type" required>
+            </div>
+            <div class="form-group">
+                <label for="release_day">Día de lanzamiento:</label>
+                <input type="number" id="release_day" name="release_day" required>
+            </div>
+            <div class="form-group">
+                <label for="week_day">Día de la semana (Friday/Other):</label>
+                <input type="text" id="week_day" name="week_day" required>
+            </div>
+            <div class="form-group">
+                <label for="num_artists">Número de artistas:</label>
+                <input type="number" id="num_artists" name="num_artists" required>
+            </div>
+            <div class="form-group">
+                <label for="followers">Número de seguidores:</label>
+                <input type="number" id="followers" name="followers" required>
+            </div>
+            <div class="form-group">
+                <label for="acousticness">Acousticness:</label>
+                <input type="number" step="0.01" id="acousticness" name="acousticness" required>
+            </div>
+            <div class="form-group">
+                <label for="danceability">Danceability:</label>
+                <input type="number" step="0.01" id="danceability" name="danceability" required>
+            </div>
+            <div class="form-group">
+                <label for="energy">Energy:</label>
+                <input type="number" step="0.01" id="energy" name="energy" required>
+            </div>
+            <div class="form-group">
+                <label for="loudness">Loudness:</label>
+                <input type="number" step="0.01" id="loudness" name="loudness" required>
+            </div>
+            <div class="form-group">
+                <label for="tempo">Tempo:</label>
+                <input type="number" id="tempo" name="tempo" required>
+            </div>
+            <div class="form-group">
+                <label for="valence">Valence:</label>
+                <input type="number" step="0.01" id="valence" name="valence" required>
+            </div>
+            <div class="form-group">
+                <label for="explicit">Explicit (True/False):</label>
+                <input type="text" id="explicit" name="explicit" required>
+            </div>
+            <div class="form-group">
+                <label for="duration_sec">Duración en segundos:</label>
+                <input type="number" id="duration_sec" name="duration_sec" required>
+            </div>
+            <div class="form-group">
+                <button type="submit">Evaluar Canción</button>
+            </div>
+        </form>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('songForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const perfect_song = {
+                album_type: true,  // Solo SINGLE es ideal
+                release_day: 17,
+                week_day: true,
+                num_artists: 6,
+                followers: 55000000,  // Promedio entre 10M y 100M
+                acousticness: 0.10,  // Promedio entre 0 y 0.20
+                danceability: 0.6,
+                energy: 0.675,  // Promedio entre 0.55 y 0.8
+                loudness: 0.8,
+                tempo: 120,
+                valence: 0.6,
+                explicit: false,
+                duration_sec: 215
+            };
+
+            function evaluate_song(song) {
+                let differences = {};
+                let percentages = {};
+                let score = 100;  // Comenzamos con 100, la puntuación perfecta
+
+                // Calcular diferencias y porcentajes para cada parámetro
+                for (const [key, perfect_value] of Object.entries(perfect_song)) {
+                    if (key in song) {
+                        const current_value = song[key];
+                        if (typeof perfect_value === 'number' && typeof current_value === 'number') {
+                            // Calcular la diferencia y el porcentaje de desviación
+                            const difference = Math.abs(perfect_value - current_value);
+                            const percentage = perfect_value !== 0 ? (difference / perfect_value) * 100 : (difference === 0 ? 0 : 100);
+                            differences[key] = difference;
+                            percentages[key] = percentage;
+                            // Reducir el score según la desviación
+                            score -= percentage / Object.keys(perfect_song).length;
+                        }
+                    }
+                }
+
+                // Normalizar el score para que esté entre 0 y 100
+                score = Math.max(0, score);
+
+                return {
+                    differences,
+                    percentages,
+                    recommended_improvements: Object.fromEntries(Object.entries(percentages).sort(([, a], [, b]) => b - a)),
+                    popularity_score: score
+                };
+            }
+
+            const song_example = {
+                album_type: document.getElementById('album_type').value.toUpperCase() === 'SINGLE',
+                release_day: parseInt(document.getElementById('release_day').value),
+                week_day: document.getElementById('week_day').value.toLowerCase() === 'friday',
+                num_artists: parseInt(document.getElementById('num_artists').value),
+                followers: parseInt(document.getElementById('followers').value),
+                acousticness: parseFloat(document.getElementById('acousticness').value),
+                danceability: parseFloat(document.getElementById('danceability').value),
+                energy: parseFloat(document.getElementById('energy').value),
+                loudness: parseFloat(document.getElementById('loudness').value),
+                tempo: parseInt(document.getElementById('tempo').value),
+                valence: parseFloat(document.getElementById('valence').value),
+                explicit: document.getElementById('explicit').value.toLowerCase() === 'true',
+                duration_sec: parseInt(document.getElementById('duration_sec').value)
+            };
+
+            const result = evaluate_song(song_example);
+
+            document.getElementById('result').innerHTML = `
+                <h2>Resultados</h2>
+                <p><strong>Diferencias:</strong> ${JSON.stringify(result.differences)}</p>
+                <p><strong>Porcentajes:</strong> ${JSON.stringify(result.percentages)}</p>
+                <p><strong>Mejoras recomendadas:</strong> ${JSON.stringify(result.recommended_improvements)}</p>
+                <p><strong>Puntuación de Popularidad:</strong> ${result.popularity_score}</p>
+            `;
+        });
+    </script>
+</body>
+</html>
