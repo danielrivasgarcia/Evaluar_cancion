@@ -91,7 +91,7 @@ with st.form("my_form"):
     energy = st.number_input("Energía", min_value=0.00, max_value=1.00)
     loudness = st.number_input("Sonoridad")
     tempo = st.number_input("Tempo")
-    valence = st.number_input("Pisitividad", min_value=0.0, max_value=1.0)
+    valence = st.number_input("Positividad", min_value=0.0, max_value=1.0)
     explicit = st.selectbox("Explicit", [True, False])
     duration_sec = st.number_input("Duración en segundos")
 
